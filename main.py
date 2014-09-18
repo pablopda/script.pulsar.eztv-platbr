@@ -2,7 +2,6 @@ import sys
 import os
 import json
 import base64
-import urllib
 import urllib2
 import time
 import re
@@ -56,7 +55,7 @@ def get_eztv_shows():
 
 def search_episode(imdb_id,tvdb_id,name,season,episode):
     show_list = get_eztv_shows()
-    episode_string = 'S' + str(season).zfill(2) + 'E' + str(episode).zfill(2)
+    episode_string = '(?:S' + str(season).zfill(2) + 'E' + str(episode).zfill(2) + '|' + str(season) + 'x' + str(episode).zfill(2) + ')'
     print 'EZTV - Seaching for: ' + name + ' ' + episode_string
     result = []
     show_found = ''
