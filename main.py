@@ -16,8 +16,13 @@ HEADERS = { 'Referer' : BASE_URL,
 cache_file = xbmc.translatePath('special://temp') + "eztv_showlist.html"
 cache_age = 12 * 60 * 60
 use_fuzzy = True
+<<<<<<< HEAD
 # threshold 0-100
 fuzzy_threshold = 90
+=======
+# threshold recommended 90-97
+fuzzy_threshold = 92
+>>>>>>> 0decfc2e5343b9682f413cad4b72a0f43a9ebf8b
 
 def get_eztv_shows():
     if(os.path.isfile(cache_file)):
