@@ -15,21 +15,28 @@ HEADERS = { 'Referer' : BASE_URL,
 }
 cache_file = xbmc.translatePath('special://temp') + "eztv_showlist.html"
 cache_age = 12 * 60 * 60
-
+xbmc.log(cache_file)
 eztv_shows = []
 def get_eztv_shows():
-    if ((time.time() - os.stat(cache_file).st_mtime)  > cache_age):
+    if(os.path.isfile(cache_file)):
+        if ((time.time() - os.stat(cache_file).st_mtime)  > cache_age):
+            print 'Invalid cache!'
+            req = urllib2.Request('%s/showlist/' % BASE_URL, headers=HEADERS)
+            data = urllib2.urlopen(req).read()
+            f = open(cache_file, "w")
+            f.write(data)
+            f.close()
+        else:
+            f = open(cache_file, "r")
+            data = f.read()
+            f.close()
+    else:
         print 'Invalid cache!'
         req = urllib2.Request('%s/showlist/' % BASE_URL, headers=HEADERS)
         data = urllib2.urlopen(req).read()
         f = open(cache_file, "w")
         f.write(data)
         f.close()
-    else:
-        f = open(cache_file, "r")
-        data = f.read()
-        f.close()
-
     for show_id, show_named_id, show_name in re.findall(r'<a href="/shows/([0-9][0-9]*)/(.*)/" class="thread_link">(.*)</a></td>', data):
         name_alt = re.sub('[-]', ' ', show_named_id)
         replaced = re.sub('[\':]', '', show_name)
