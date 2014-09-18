@@ -6,6 +6,7 @@ import urllib2
 import time
 import re
 import xbmcplugin
+from fuzzywuzzy import fuzz
 
 inicio = time.time()
 BASE_URL = "https://eztv.it"
@@ -14,6 +15,9 @@ HEADERS = { 'Referer' : BASE_URL,
 }
 cache_file = xbmc.translatePath('special://temp') + "eztv_showlist.html"
 cache_age = 12 * 60 * 60
+use_fuzzy = True
+# threshold recommended 90-97
+fuzzy_threshold = 90
 
 def get_eztv_shows():
     if(os.path.isfile(cache_file)):
@@ -37,30 +41,39 @@ def get_eztv_shows():
         f.close()
     eztv_shows = []
     for show_id, show_named_id, show_name in re.findall(r'<a href="/shows/([0-9][0-9]*)/(.*)/" class="thread_link">(.*)</a></td>', data):
-        name_alt = re.sub('[-]', ' ', show_named_id)
-        strip = re.sub('\([^)]*\)|[\':]', '', show_name)
-        replace = re.sub('[&]', 'and', strip)
-        fix_position = re.findall(r'(.*), (.*)', replace, re.IGNORECASE)
-        if(len(fix_position) > 0):
-            new_name = fix_position[0][1] + ' ' + fix_position[0][0]
+        name1 = re.sub('[-]', ' ', show_named_id)
+        t1 = re.sub('[&]', 'and', show_name)
+        s1 = re.sub('\([^)A-Z]*\)|[\(\)\':]', '', t1)
+        s2 = re.sub('\([^)]*\)|[\(\)\':]', '', t1)
+        s3 = re.sub('[\(\)\':]', '', t1)
+        f1 = re.findall(r'(.*),(.*)', s1, re.IGNORECASE)
+        f2 = re.findall(r'(.*),(.*)', s2, re.IGNORECASE)
+        f3 = re.findall(r'(.*),(.*)', s3, re.IGNORECASE)
+        if(len(f1) > 0):
+            name2 = f1[0][1] + ' ' + f1[0][0]
+            name3 = f2[0][1] + ' ' + f2[0][0]
+            name4 = f3[0][1] + ' ' + f3[0][0]
         else:
-            new_name = replace
+            name2 = s1
+            name3 = s2
+            name4 = s3
         eztv_shows.append({
             "id": show_id,
-            "name": new_name.lower(),
-            "name_alt": name_alt.lower(),
+            "name1": name1.lower().strip(),
+            "name2": name2.lower().strip(),
+            "name3": name3.lower().strip(),
+            "name4": name4.lower().strip(),
         })
-        #show_name + '->' + new_name
     return eztv_shows
 
 def search_episode(imdb_id,tvdb_id,name,season,episode):
     show_list = get_eztv_shows()
     episode_string = '(?:S' + str(season).zfill(2) + 'E' + str(episode).zfill(2) + '|' + str(season) + 'x' + str(episode).zfill(2) + ')'
-    print 'EZTV - Seaching for: ' + name + ' ' + episode_string
+    print 'EZTV - Seaching for: ' + name + ' (' + str(season).zfill(2) + 'E' + str(episode).zfill(2) + ')'
     result = []
     show_found = ''
     for item in show_list:
-        if ((name == item['name']) | (name == item['name_alt'])):
+        if ((name == item['name1']) | (name == item['name2']) | (name == item['name3']) | (name == item['name4'])):
             url_show = BASE_URL + '/shows/' + item['id'] + '/'
             req = urllib2.Request(url_show, headers=HEADERS)
             data = urllib2.urlopen(req).read()
@@ -72,6 +85,29 @@ def search_episode(imdb_id,tvdb_id,name,season,episode):
         print 'EZTV - Show found: ' + show_found
     else:
         print 'EZTV - Show found: none'
+        if(use_fuzzy):
+            print 'EZTV - Trying Fuzzy'
+            fuzy_list = []
+            for item in show_list:
+                fuzy_list.append({'score': int(fuzz.ratio(name,item['name1'])), 'id': item['id'], 'name': item['name1']})
+                fuzy_list.append({'score': int(fuzz.ratio(name,item['name2'])), 'id': item['id'], 'name': item['name2']})
+                fuzy_list.append({'score': int(fuzz.ratio(name,item['name3'])), 'id': item['id'], 'name': item['name3']})
+                fuzy_list.append({'score': int(fuzz.ratio(name,item['name4'])), 'id': item['id'], 'name': item['name4']})
+            def getKey(obj):
+                return obj['score']
+            sorted_showlist = sorted(fuzy_list, key=getKey)
+            item = sorted_showlist[-1]
+            if(item['score'] >= fuzzy_threshold ):
+                print 'EZTV - Fuzzy found: ' + item['name'] + ' (score: ' + str(item['score']) + ')'
+                url_show = BASE_URL + '/shows/' + item['id'] + '/'
+                req = urllib2.Request(url_show, headers=HEADERS)
+                data = urllib2.urlopen(req).read()
+                print 'Fuzy: ' + item['name']
+                for magnet in re.findall(r'(magnet.*' + episode_string + '.*)" class="magnet"', data, re.IGNORECASE):
+                    result.append({'uri': magnet})
+            else:
+                print 'EZTV - Fuzzy ignored: ' + sorted_showlist[-1]['name'] + ' (score: ' + str(sorted_showlist[-1]['score'])+ ')'
+
     print 'EZTV - Result: ' + str(result)
     print 'EZTV - Time: ' + str((time.time() - inicio))
     return result
