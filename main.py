@@ -54,9 +54,7 @@ def get_eztv_shows():
 
 def search_episode(imdb_id,tvdb_id,name,season,episode):
     result = []
-    tempo1 = time.time()
     show_list = get_eztv_shows()
-    print time.time() - tempo1
     episode_string = 'S' + str(season).zfill(2) + 'E' + str(episode).zfill(2)
     print 'EZTV - Seaching for: ' + name + ' ' + episode_string
     for item in show_list:
