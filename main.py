@@ -15,11 +15,11 @@ HEADERS = { 'Referer' : BASE_URL,
 }
 cache_file = xbmc.translatePath('special://temp') + "eztv_showlist.html"
 cache_age = 12 * 60 * 60
-eztv_shows = []
+
 def get_eztv_shows():
     if(os.path.isfile(cache_file)):
         if ((time.time() - os.stat(cache_file).st_mtime)  > cache_age):
-            print 'EZTV - Invalid cache!'
+            print 'Invalid cache!'
             req = urllib2.Request('%s/showlist/' % BASE_URL, headers=HEADERS)
             data = urllib2.urlopen(req).read()
             f = open(cache_file, "w")
@@ -30,12 +30,13 @@ def get_eztv_shows():
             data = f.read()
             f.close()
     else:
-        print 'EZTV - No cache!'
+        print 'No cache!'
         req = urllib2.Request('%s/showlist/' % BASE_URL, headers=HEADERS)
         data = urllib2.urlopen(req).read()
         f = open(cache_file, "w")
         f.write(data)
         f.close()
+    eztv_shows = []
     for show_id, show_named_id, show_name in re.findall(r'<a href="/shows/([0-9][0-9]*)/(.*)/" class="thread_link">(.*)</a></td>', data):
         name_alt = re.sub('[-]', ' ', show_named_id)
         strip = re.sub('\([^)]*\)|[\':]', '', show_name)
@@ -54,10 +55,10 @@ def get_eztv_shows():
     return eztv_shows
 
 def search_episode(imdb_id,tvdb_id,name,season,episode):
-    result = []
     show_list = get_eztv_shows()
     episode_string = 'S' + str(season).zfill(2) + 'E' + str(episode).zfill(2)
     print 'EZTV - Seaching for: ' + name + ' ' + episode_string
+    result = []
     for item in show_list:
         if ((name == item['name']) | (name == item['name_alt'])):
             url_show = BASE_URL + '/shows/' + item['id'] + '/'
