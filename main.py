@@ -19,7 +19,7 @@ eztv_shows = []
 def get_eztv_shows():
     if(os.path.isfile(cache_file)):
         if ((time.time() - os.stat(cache_file).st_mtime)  > cache_age):
-            print 'Invalid cache!'
+            print 'EZTV - Invalid cache!'
             req = urllib2.Request('%s/showlist/' % BASE_URL, headers=HEADERS)
             data = urllib2.urlopen(req).read()
             f = open(cache_file, "w")
@@ -30,7 +30,7 @@ def get_eztv_shows():
             data = f.read()
             f.close()
     else:
-        print 'No cache!'
+        print 'EZTV - No cache!'
         req = urllib2.Request('%s/showlist/' % BASE_URL, headers=HEADERS)
         data = urllib2.urlopen(req).read()
         f = open(cache_file, "w")
