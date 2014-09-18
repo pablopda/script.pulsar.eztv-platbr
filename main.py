@@ -38,18 +38,18 @@ def get_eztv_shows():
         f.close()
     for show_id, show_named_id, show_name in re.findall(r'<a href="/shows/([0-9][0-9]*)/(.*)/" class="thread_link">(.*)</a></td>', data):
         name_alt = re.sub('[-]', ' ', show_named_id)
-        replaced = re.sub('[\':]', '', show_name)
+        replaced = re.sub('\([^)]*\)|[\':]', '', show_name)
         fix_position = re.findall(r'(.*),(.*)', replaced, re.IGNORECASE)
         if(len(fix_position) > 0):
             new_name = fix_position[0][1] + ' ' + fix_position[0][0]
         else:
-            new_name = replaced.lower()
+            new_name = replaced
         eztv_shows.append({
             "id": show_id,
-            "named_id": show_named_id,
-            "name": new_name,
-            "name_alt": name_alt,
+            "name": new_name.lower(),
+            "name_alt": name_alt.lower(),
         })
+        #print show_name + ' -> ' + new_name
     return eztv_shows
 
 def search_episode(imdb_id,tvdb_id,name,season,episode):
