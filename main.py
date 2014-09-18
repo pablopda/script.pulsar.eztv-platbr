@@ -65,7 +65,8 @@ def search_episode(imdb_id,tvdb_id,name,season,episode):
             for magnet in re.findall(r'(magnet.*' + episode_string + '.*)" class="magnet"', data, re.IGNORECASE):
                 result.append({'uri': magnet})
     print 'EZTV - Result: ' + str(result)
-    print 'EZTV - Time:' + str((time.time() - inicio))
+    print 'EZTV - Time: ' + str((time.time() - inicio))
+    return result
 
 def search(query):
     return []
