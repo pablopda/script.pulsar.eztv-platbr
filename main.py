@@ -44,11 +44,11 @@ def get_eztv_shows():
         if(len(fix_position) > 0):
             new_name = fix_position[0][1] + ' ' + fix_position[0][0]
         else:
-            new_name = replaced
+            new_name = replaced.lower()
         eztv_shows.append({
             "id": show_id,
             "named_id": show_named_id,
-            "name": new_name.lower(),
+            "name": new_name,
             "name_alt": name_alt,
         })
     return eztv_shows
