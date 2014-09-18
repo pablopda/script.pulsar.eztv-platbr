@@ -59,6 +59,7 @@ def search_episode(imdb_id,tvdb_id,name,season,episode):
     episode_string = 'S' + str(season).zfill(2) + 'E' + str(episode).zfill(2)
     print 'EZTV - Seaching for: ' + name + ' ' + episode_string
     result = []
+    show_found = ''
     for item in show_list:
         if ((name == item['name']) | (name == item['name_alt'])):
             url_show = BASE_URL + '/shows/' + item['id'] + '/'
@@ -66,6 +67,12 @@ def search_episode(imdb_id,tvdb_id,name,season,episode):
             data = urllib2.urlopen(req).read()
             for magnet in re.findall(r'(magnet.*' + episode_string + '.*)" class="magnet"', data, re.IGNORECASE):
                 result.append({'uri': magnet})
+            show_found = name
+            break
+    if(show_found):
+        print 'EZTV - Show found: ' + show_found
+    else:
+        print 'EZTV - Show found: none'
     print 'EZTV - Result: ' + str(result)
     print 'EZTV - Time: ' + str((time.time() - inicio))
     return result
