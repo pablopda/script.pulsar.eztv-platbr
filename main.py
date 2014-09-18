@@ -15,7 +15,6 @@ HEADERS = { 'Referer' : BASE_URL,
 }
 cache_file = xbmc.translatePath('special://temp') + "eztv_showlist.html"
 cache_age = 12 * 60 * 60
-xbmc.log(cache_file)
 eztv_shows = []
 def get_eztv_shows():
     if(os.path.isfile(cache_file)):
@@ -31,7 +30,7 @@ def get_eztv_shows():
             data = f.read()
             f.close()
     else:
-        print 'Invalid cache!'
+        print 'No cache!'
         req = urllib2.Request('%s/showlist/' % BASE_URL, headers=HEADERS)
         data = urllib2.urlopen(req).read()
         f = open(cache_file, "w")
@@ -52,7 +51,6 @@ def get_eztv_shows():
             "name_alt": name_alt,
         })
     return eztv_shows
-
 
 def search_episode(imdb_id,tvdb_id,name,season,episode):
     result = []
