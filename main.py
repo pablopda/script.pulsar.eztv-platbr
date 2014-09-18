@@ -17,7 +17,7 @@ cache_file = xbmc.translatePath('special://temp') + "eztv_showlist.html"
 cache_age = 12 * 60 * 60
 use_fuzzy = True
 # threshold recommended 90-97
-fuzzy_threshold = 90
+fuzzy_threshold = 92
 
 def get_eztv_shows():
     if(os.path.isfile(cache_file)):
