@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+  <setting label="URL" type="text" id="base_url" default="http://eztv.it"/>
+  <setting label="Use Fuzzy" type="bool" id="use_fuzzy" default="true"/>
+  <setting label="Fuzzy Threshold" type="slider" id="fuzzy_threshold" default="92" range="90,100" option="int"/>
+  <setting label="Use Cache for TV Shows List" type="bool" id="use_cache_tvshows_list" default="true"/>
+  <setting label="Cache TV Shows Timeout (hours)" type="number" id="cache_tvshows_age" default="48"/>
+  <setting label="Use Cache for Episodes List" type="bool" id="use_cache_episodes_list" default="true"/>
+  <setting label="Cache Episodes Timeout (hours)" type="number" id="cache_espisodes_age" default="6"/>
+</settings>
