@@ -3,6 +3,13 @@ script.pulsar.eztv
 
 EZTV Provider for Pulsar
 
+Download it here: https://github.com/platbr/script.pulsar.eztv/releases
+
+Changelog 0.0.5
+* Fix a bug in the cache system.
+
+Changelog 0.0.4
+
 Now it has better cache system:
 * The second search will be much faster for the same Season, so it can avoid problems with Pulsar timeout (2s).
 
