@@ -3,6 +3,22 @@ script.pulsar.eztv
 
 EZTV Provider for Pulsar
 
-Still need some optimization and tests.
+Now it has better cache system:
+* The second search will be much faster for the same Season, so it can avoid problems with Pulsar timeout (2s).
 
-For while Pulsar has 2s timeout so it can fail.
+Now it has interface for configure it:
+* URL of EZTV: 
+    * You can change it if you need.
+* Use Fuzzy
+    * Once EZTV does not have a way to search using tvdb_id or imdb_id, we need to use the TV Show name, when the direct comparation between Pulsar provided name and EZTV name fails, we can use Fuzzy Logic to fix it.
+* Fuzzy Threshold
+    * Control tolerance when using Fuzzy.
+* Use Cache for TV Shows List
+    * Helps to reduce execution time for every search, once each search need to determine the correspondent eztv show id, before get episodes list.
+* Cache TV Shows Timeout (hours)
+    * Maximum age.
+* Use Cache for Episodes List
+    * Helps reduce execution time for sequential searches for the same Season, it avoid to reach Pulsar timeout.
+* Cache Episodes Timeout (hours)
+    * Maximum age.
+![captura de tela 2014-09-19 as 12 36 20](https://cloud.githubusercontent.com/assets/4853326/4338176/4f81230c-4016-11e4-97b9-58a6c508ba67.png)
