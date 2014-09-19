@@ -27,7 +27,7 @@ HEADERS = { 'Referer' : base_url,
             'User-Agent' : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36'
 }
 cache_prefix = xbmc.translatePath('special://temp') + __addon__.getAddonInfo('name').lower().replace(' ','_') + '_cache_'
-print cache_prefix
+
 def search(query):
     return []
 
@@ -45,9 +45,9 @@ def search_episode(imdb_id,tvdb_id,name,season,episode):
             data = ''
             url_show = base_url + '/shows/' + item['id'] + '/'
             if(use_cache_episodes_list):
-                data = get_url(url_show, True)
+                data = get_url(url_show, True, cache_episodes_age)
             else:
-                data = get_url(url_show, False)
+                data = get_url(url_show, False, cache_episodes_age)
             for magnet in re.findall(r'(magnet.*' + episode_string + '.*)" class="magnet"', data, re.IGNORECASE):
                 result.append({'uri': magnet})
             show_found = name
@@ -73,9 +73,9 @@ def search_episode(imdb_id,tvdb_id,name,season,episode):
                 url_show = base_url + '/shows/' + item['id'] + '/'
                 data = ''
                 if(use_cache_episodes_list):
-                    data = get_url(url_show, True)
+                    data = get_url(url_show, True, cache_episodes_age)
                 else:
-                    data = get_url(url_show, False)
+                    data = get_url(url_show, False, cache_episodes_age)
                 for magnet in re.findall(r'(magnet.*' + episode_string + '.*)" class="magnet"', data, re.IGNORECASE):
                     result.append({'uri': magnet})
             else:
@@ -89,9 +89,9 @@ def get_eztv_shows():
     data = ''
     url_show_list = base_url + '/showlist/'
     if(use_cache_tvshows_list):
-        data = get_url(url_show_list, True)
+        data = get_url(url_show_list, True, cache_tvshows_age)
     else:
-        data = get_url(url_show_list, False)
+        data = get_url(url_show_list, False, cache_tvshows_age)
     eztv_shows = []
     for show_id, show_named_id, show_name in re.findall(r'<a href="/shows/([0-9][0-9]*)/(.*)/" class="thread_link">(.*)</a></td>', data):
         name1 = re.sub('[-]', ' ', show_named_id)
@@ -119,7 +119,7 @@ def get_eztv_shows():
         })
     return eztv_shows
 
-def get_url(url,use_cache=False):
+def get_url(url,use_cache=False,cache_age=600):
     print PREFIX_LOG + 'Downloading ' + url
     data = ''
     m = hashlib.md5()
@@ -129,7 +129,7 @@ def get_url(url,use_cache=False):
     if (use_cache):
         print PREFIX_LOG + 'Cache -> ' + cache_file
         if(os.path.isfile(cache_file)):
-            if ((time.time() - os.stat(cache_file).st_mtime)  > cache_tvshows_age):
+            if ((time.time() - os.stat(cache_file).st_mtime)  > cache_age):
                 print PREFIX_LOG + 'Invalid cache!'
                 req = urllib2.Request(url, headers=HEADERS)
                 data = urllib2.urlopen(req).read()
