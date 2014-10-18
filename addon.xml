@@ -2,6 +2,7 @@
 <addon id="script.pulsar.eztv" name="Pulsar EZTV Provider" version="0.0.5" provider-name="platbr">
 	<requires>
 		<import addon="xbmc.python" version="2.12.0"/>
+		<import addon="pulsar"/>
 	</requires>
 	<extension point="xbmc.python.script" library="main.py">
 		<provides>executable</provides>

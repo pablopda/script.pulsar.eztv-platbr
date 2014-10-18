@@ -8,6 +8,8 @@ import time
 import re
 import xbmcaddon
 import xbmcplugin
+from pulsar import provider
+
 inicio = time.time()
 __addon__ = xbmcaddon.Addon(str(sys.argv[0]))
 addon_dir = xbmc.translatePath(__addon__.getAddonInfo('path'))
@@ -28,13 +30,10 @@ HEADERS = { 'Referer' : base_url,
 }
 cache_prefix = xbmc.translatePath('special://temp') + __addon__.getAddonInfo('name').lower().replace(' ','_') + '_cache_'
 
-def search(query):
-    return []
-
-def search_movie(imdb_id, name, year):
-    return []
-
-def search_episode(imdb_id,tvdb_id,name,season,episode):
+def search_episode(ep):
+    name = ep['title']
+    season = ep['season']
+    episode = ep['episode']
     show_list = get_eztv_shows()
     episode_string = '(?:S' + str(season).zfill(2) + 'E' + str(episode).zfill(2) + '|' + str(season) + 'x' + str(episode).zfill(2) + ')'
     print PREFIX_LOG + 'Seaching for: ' + name + ' (S' + str(season).zfill(2) + 'E' + str(episode).zfill(2) + ')'
@@ -156,8 +155,4 @@ def get_url(url,use_cache=False,cache_age=600):
         f.close()
     return data
 
-PAYLOAD = json.loads(base64.b64decode(sys.argv[1]))
-urllib2.urlopen(
-PAYLOAD["callback_url"],
-data=json.dumps(globals()[PAYLOAD["method"]](*PAYLOAD["args"]))
-)
+provider.register(search_episode)
