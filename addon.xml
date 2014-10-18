@@ -6,7 +6,7 @@
     <extension point="xbmc.addon.repository" name="Pulsar EZTV Provider">
         <info compressed="false">https://raw.githubusercontent.com/platbr/script.pulsar.eztv/master/addon.xml</info>
         <checksum>https://raw.githubusercontent.com/platbr/script.pulsar.eztv/master/addon.xml.md5</checksum>
-        <datadir zip="true">https://github.com/platbr/script.pulsar.eztv.git</datadir>
+        <datadir zip="true">https://github.com/platbr/script.pulsar.eztv/archive/master.zip</datadir>
     </extension>
 	<extension point="xbmc.python.script" library="main.py">
 		<provides>executable</provides>
