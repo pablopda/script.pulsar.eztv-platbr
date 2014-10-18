@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="script.pulsar.eztv" name="Pulsar EZTV Provider" version="0.0.5" provider-name="platbr">
+<addon id="script.pulsar.eztv" name="Pulsar EZTV Provider" version="0.0.6" provider-name="platbr">
 	<requires>
 		<import addon="xbmc.python" version="2.12.0"/>
-		<import addon="pulsar"/>
 	</requires>
+    <extension point="xbmc.addon.repository" name="Pulsar EZTV Provider">
+        <info compressed="false">https://raw.githubusercontent.com/platbr/script.pulsar.eztv/master/addon.xml</info>
+        <checksum>https://raw.githubusercontent.com/platbr/script.pulsar.eztv/master/addon.xml.md5</checksum>
+        <datadir zip="true">https://github.com/platbr/script.pulsar.eztv.git</datadir>
+    </extension>
 	<extension point="xbmc.python.script" library="main.py">
 		<provides>executable</provides>
 	</extension>
