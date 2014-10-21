@@ -5,6 +5,12 @@ EZTV Provider for Pulsar
 
 Download it here: https://github.com/platbr/script.pulsar.eztv/releases
 
+Changelog 0.0.7
+* Using http://ez-tv.in instead of http://eztv.it
+
+Changelog 0.0.6
+* Working with Pulsar 0.2
+ 
 Changelog 0.0.5
 * Fix a bug in the cache system.
 
