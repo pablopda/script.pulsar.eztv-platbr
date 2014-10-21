@@ -155,4 +155,11 @@ def get_url(url,use_cache=False,cache_age=600):
         f.close()
     return data
 
-provider.register(search_episode)
+    
+def search_movie(movie):
+    return []
+
+def search(query):
+    return []
+    
+provider.register(search, search_movie, search_episode)
