@@ -124,12 +124,8 @@ def get_cached_func(funcName,funcParm=(False,)):
         return d[key]
         
 def get_magnet_list(url):
-    data = ''
+    data = get_url(url)
     result = []
-    if(use_cache_episodes_list):
-        data = get_cached_func('get_url',(url,))
-    else:
-        data = get_url(url)
     for magnet in re.findall(r'(magnet.*)" class="magnet"', data, re.IGNORECASE):
         result.append({'uri': magnet})
     return result
