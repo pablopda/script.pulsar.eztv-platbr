@@ -9,6 +9,8 @@ import re
 import xbmcaddon
 import xbmcplugin
 from pulsar import provider
+import shelve
+import thread
 
 inicio = time.time()
 __addon__ = xbmcaddon.Addon(str(sys.argv[0]))
@@ -17,10 +19,6 @@ sys.path.append(os.path.join(addon_dir, 'resources', 'lib' ))
 from fuzzywuzzy import fuzz
 
 base_url = __addon__.getSetting("base_url")
-use_cache_tvshows_list = __addon__.getSetting("use_cache_tvshows_list")
-cache_tvshows_age = __addon__.getSetting("cache_tvshows_age") * 60 * 60
-use_cache_episodes_list = __addon__.getSetting("use_cache_episodes_list")
-cache_episodes_age = __addon__.getSetting("cache_episodes_age") * 60 * 60
 use_fuzzy = __addon__.getSetting("use_fuzzy")
 fuzzy_threshold = __addon__.getSetting("fuzzy_threshold")
 
@@ -34,21 +32,16 @@ def search_episode(ep):
     name = ep['title']
     season = ep['season']
     episode = ep['episode']
-    show_list = get_eztv_shows()
+    show_list = get_cached_func('get_eztv_shows')
     episode_string = '(?:S' + str(season).zfill(2) + 'E' + str(episode).zfill(2) + '|' + str(season) + 'x' + str(episode).zfill(2) + ')'
     print PREFIX_LOG + 'Seaching for: ' + name + ' (S' + str(season).zfill(2) + 'E' + str(episode).zfill(2) + ')'
     result = []
     show_found = ''
     for item in show_list:
         if ((name == item['name1']) | (name == item['name2']) | (name == item['name3']) | (name == item['name4'])):
-            data = ''
             url_show = base_url + '/shows/' + item['id'] + '/'
-            if(use_cache_episodes_list):
-                data = get_url(url_show, True, cache_episodes_age)
-            else:
-                data = get_url(url_show, False, cache_episodes_age)
-            for magnet in re.findall(r'(magnet.*' + episode_string + '.*)" class="magnet"', data, re.IGNORECASE):
-                result.append({'uri': magnet})
+            mag_list = get_cached_func('get_magnet_list' ,(url_show,))
+            result = search_in_list(episode_string, mag_list)
             show_found = name
             break
     if(show_found):
@@ -70,13 +63,8 @@ def search_episode(ep):
             if(item['score'] >= fuzzy_threshold ):
                 print PREFIX_LOG + 'Fuzzy found: ' + item['name'] + ' (score: ' + str(item['score']) + ')'
                 url_show = base_url + '/shows/' + item['id'] + '/'
-                data = ''
-                if(use_cache_episodes_list):
-                    data = get_url(url_show, True, cache_episodes_age)
-                else:
-                    data = get_url(url_show, False, cache_episodes_age)
-                for magnet in re.findall(r'(magnet.*' + episode_string + '.*)" class="magnet"', data, re.IGNORECASE):
-                    result.append({'uri': magnet})
+                mag_list = get_cached_func('get_magnet_list' ,(url_show,))
+                result = search_in_list(episode_string, mag_list)
             else:
                 print PREFIX_LOG + 'Fuzzy ignored: ' + sorted_showlist[-1]['name'] + ' (score: ' + str(sorted_showlist[-1]['score'])+ ')'
 
@@ -87,10 +75,7 @@ def search_episode(ep):
 def get_eztv_shows():
     data = ''
     url_show_list = base_url + '/showlist/'
-    if(use_cache_tvshows_list):
-        data = get_url(url_show_list, True, cache_tvshows_age)
-    else:
-        data = get_url(url_show_list, False, cache_tvshows_age)
+    data = get_url(url_show_list)
     eztv_shows = []
     for show_id, show_named_id, show_name in re.findall(r'<a href="/shows/([0-9][0-9]*)/(.*)/" class="thread_link">(.*)</a></td>', data):
         name1 = re.sub('[-]', ' ', show_named_id)
@@ -118,48 +103,56 @@ def get_eztv_shows():
         })
     return eztv_shows
 
-def get_url(url,use_cache=False,cache_age=600):
-    print PREFIX_LOG + 'Downloading ' + url
-    data = ''
+def get_cached_func(funcName,funcParm=(False,)):
+    cache_file = cache_prefix + 'obj_persistence.db'
     m = hashlib.md5()
-    m.update(url)
-    url_hash = m.hexdigest()
-    cache_file = cache_prefix + url_hash
-    if (use_cache):
-        print PREFIX_LOG + 'Cache -> ' + cache_file
-        if(os.path.isfile(cache_file)):
-            if ((time.time() - os.stat(cache_file).st_mtime)  > cache_age):
-                print PREFIX_LOG + 'Invalid cache!'
-                req = urllib2.Request(url, headers=HEADERS)
-                data = urllib2.urlopen(req).read()
-                f = open(cache_file, "w")
-                f.write(data)
-                f.close()
-            else:
-                f = open(cache_file, "r")
-                data = f.read()
-                f.close()
+    m.update(funcName + str(funcParm))
+    key = m.hexdigest()
+    f = globals()[funcName]
+    d = shelve.open(cache_file)
+    if (d.has_key(key)):
+        if(funcParm[0] == False):
+            thread.start_new_thread(f, ())
         else:
-            print PREFIX_LOG + 'No cache!'
-            req = urllib2.Request(url, headers=HEADERS)
-            data = urllib2.urlopen(req).read()
-            f = open(cache_file, "w")
-            f.write(data)
-            f.close()
+            thread.start_new_thread(f, (funcParm))
+        return d[key]
     else:
-        print PREFIX_LOG + 'Dont use cache!!'
-        req = urllib2.Request(url, headers=HEADERS)
-        data = urllib2.urlopen(req).read()
-        f = open(cache_file, "w")
-        f.write(data)
-        f.close()
+        if(funcParm[0] == False):
+            d[key] = f()
+        else:
+            d[key] = f(*funcParm)
+        return d[key]
+        
+def get_magnet_list(url):
+    data = ''
+    result = []
+    if(use_cache_episodes_list):
+        data = get_cached_func('get_url',(url,))
+    else:
+        data = get_url(url)
+    for magnet in re.findall(r'(magnet.*)" class="magnet"', data, re.IGNORECASE):
+        result.append({'uri': magnet})
+    return result
+
+def search_in_list(string, list):
+    result = []
+    regex = re.compile(r'.*' + string + '.*')
+    for element in list:
+        m = re.match(regex, str(element))
+        if m:
+            result.append(element)
+    return result
+    
+def get_url(url):
+    print PREFIX_LOG + 'Downloading ' + url
+    req = urllib2.Request(url, headers=HEADERS)
+    data = urllib2.urlopen(req).read()
     return data
 
-    
 def search_movie(movie):
     return []
 
 def search(query):
     return []
-    
+
 provider.register(search, search_movie, search_episode)
