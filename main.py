@@ -8,10 +8,9 @@ import xbmcaddon
 import xbmcplugin
 from pulsar import provider
 import shelve
-from multiprocessing import Process
+import thread
 
-
-inicio = time.time()
+begin = time.time()
 __addon__ = xbmcaddon.Addon(str(sys.argv[0]))
 addon_dir = xbmc.translatePath(__addon__.getAddonInfo('path'))
 sys.path.append(os.path.join(addon_dir, 'resources', 'lib' ))
@@ -26,7 +25,6 @@ HEADERS = { 'Referer' : base_url,
             'User-Agent' : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36'
 }
 cache_prefix = xbmc.translatePath('special://temp') + __addon__.getAddonInfo('name').lower().replace(' ','_') + '_cache_'
-cache_file = cache_prefix + 'obj_persistence.db'
 
 def search_episode(ep):
     name = ep['title']
@@ -69,7 +67,7 @@ def search_episode(ep):
                 print PREFIX_LOG + 'Fuzzy ignored: ' + sorted_showlist[-1]['name'] + ' (score: ' + str(sorted_showlist[-1]['score'])+ ')'
 
     print PREFIX_LOG + 'Result: ' + str(result)
-    print PREFIX_LOG + 'Time: ' + str((time.time() - inicio))
+    print PREFIX_LOG + 'Time: ' + str((time.time() - begin))
     return result
 
 def get_eztv_shows():
@@ -107,12 +105,13 @@ def get_cached_func(funcName,funcParm=(False,)):
     m = hashlib.md5()
     m.update(funcName + str(funcParm))
     key = m.hexdigest()
+    cache_file = cache_prefix + key + '.db'
     f = globals()[funcName]
     d = shelve.open(cache_file)
     if (d.has_key(key)):
         value = d[key]
         d.close()
-        Process(target=update_cache, args=(key,funcName,funcParm)).start()
+        thread.start_new_thread(update_cache, (key,funcName,funcParm, ))
         return value
     else:
         if(funcParm[0] == False):
@@ -147,12 +146,14 @@ def update_cache(key,funcName,funcParm):
     m = hashlib.md5()
     m.update(funcName + str(funcParm))
     key = m.hexdigest()
+    cache_file = cache_prefix + key + '.db'
     f = globals()[funcName]
     d = shelve.open(cache_file)
     if(funcParm[0] == False):
         d[key] = f()
     else:
         d[key] = f(*funcParm)
+    print PREFIX_LOG + 'Cache key: ' + key + ' updated!'
     d.close()
 
 def search_movie(movie):
@@ -161,5 +162,4 @@ def search_movie(movie):
 def search(query):
     return []
 
-if __name__ == '__main__':
-    provider.register(search, search_movie, search_episode)
+provider.register(search, search_movie, search_episode)
