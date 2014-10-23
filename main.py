@@ -1,7 +1,5 @@
 import sys
 import os
-import json
-import base64
 import urllib2
 import hashlib
 import time
@@ -10,7 +8,8 @@ import xbmcaddon
 import xbmcplugin
 from pulsar import provider
 import shelve
-import thread
+from multiprocessing import Process
+
 
 inicio = time.time()
 __addon__ = xbmcaddon.Addon(str(sys.argv[0]))
@@ -27,6 +26,7 @@ HEADERS = { 'Referer' : base_url,
             'User-Agent' : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36'
 }
 cache_prefix = xbmc.translatePath('special://temp') + __addon__.getAddonInfo('name').lower().replace(' ','_') + '_cache_'
+cache_file = cache_prefix + 'obj_persistence.db'
 
 def search_episode(ep):
     name = ep['title']
@@ -104,18 +104,16 @@ def get_eztv_shows():
     return eztv_shows
 
 def get_cached_func(funcName,funcParm=(False,)):
-    cache_file = cache_prefix + 'obj_persistence.db'
     m = hashlib.md5()
     m.update(funcName + str(funcParm))
     key = m.hexdigest()
     f = globals()[funcName]
     d = shelve.open(cache_file)
     if (d.has_key(key)):
-        if(funcParm[0] == False):
-            thread.start_new_thread(f, ())
-        else:
-            thread.start_new_thread(f, (funcParm))
-        return d[key]
+        value = d[key]
+        d.close()
+        Process(target=update_cache, args=(key,funcName,funcParm)).start()
+        return value
     else:
         if(funcParm[0] == False):
             d[key] = f()
@@ -145,10 +143,23 @@ def get_url(url):
     data = urllib2.urlopen(req).read()
     return data
 
+def update_cache(key,funcName,funcParm):
+    m = hashlib.md5()
+    m.update(funcName + str(funcParm))
+    key = m.hexdigest()
+    f = globals()[funcName]
+    d = shelve.open(cache_file)
+    if(funcParm[0] == False):
+        d[key] = f()
+    else:
+        d[key] = f(*funcParm)
+    d.close()
+
 def search_movie(movie):
     return []
 
 def search(query):
     return []
 
-provider.register(search, search_movie, search_episode)
+if __name__ == '__main__':
+    provider.register(search, search_movie, search_episode)
