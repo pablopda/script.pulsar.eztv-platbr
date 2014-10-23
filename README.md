@@ -5,6 +5,15 @@ EZTV Provider for Pulsar
 
 Download it here: https://github.com/platbr/script.pulsar.eztv/releases
 
+Changelog 0.0.9
+* Cache system fixed
+ * I had forgot to finish the update of cache system.
+
+Changelog 0.0.8
+* New cache system
+ * Much faster because it uses python's shelve module to store objets and use Threads for background update.
+ * Using https://eztv.it again because ez-tv.in has problems, please change the URL.
+
 Changelog 0.0.7
 * Using http://ez-tv.in instead of http://eztv.it
 
