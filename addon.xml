@@ -8,7 +8,7 @@
 		<provides>executable</provides>
 	</extension>
 	<extension point="xbmc.addon.metadata">
-		<summary lang="en">Pulsar EZTV Provider</summary>
+		<summary lang="en">platbr's Pulsar EZTV Provider</summary>
 		<language></language>
 		<platform>all</platform>
 	</extension>
