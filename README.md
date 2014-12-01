@@ -1,5 +1,7 @@
 script.pulsar.eztv
 ==================
+WARNING:
+This is outdated, please use this: http://forum.kodi.tv/showthread.php?tid=204728
 
 EZTV Provider for Pulsar
 
